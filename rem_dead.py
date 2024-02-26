@@ -20,8 +20,7 @@ with open('.storage/core.entity_registry.bak', 'w', encoding='utf-8') as e:
 # Find dead devices
 dead_devices_id = []
 dead_devices_index = []
-for m in range(0, len(devices['data']['devices'])):
-    dev = devices['data']['devices'][m]
+for m, dev in enumerate(devices['data']['devices']):
     if 'name_by_user' in dev and dev['name_by_user'] is not None and \
             dev['name_by_user'].endswith('dead'):
         print(f'Found dead device {dev["name_by_user"]}')
@@ -33,8 +32,7 @@ for m in range(0, len(devices['data']['devices'])):
 for dev_id in dead_devices_id:
     print(f'\nProcess device with id {dev_id}:')
     del_entities_index = []
-    for i in range(0, len(entities['data']['entities'])):
-        e = entities['data']['entities'][i]
+    for i, e in enumerate(entities['data']['entities']):
         if e['device_id'] == dev_id:
             print('Delete entity %s' % e['entity_id'])
             del_entities_index.append(i)
