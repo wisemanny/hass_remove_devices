@@ -15,4 +15,5 @@ Steps:
 4. The script will create two .bak files and two .upd files. The script modified
    core.device_registry and core.entity_registry files
 6. You may use diff to see the difference
-7. Start HA
+7. Copy .upd files to replace original files
+8. Start HA
