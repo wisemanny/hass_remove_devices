@@ -1,20 +1,31 @@
+import os
 import json
 
 devices = None  # store core.device_registry
 entities = None  # store core.entity_registry
 
+# Define file names
+FILE_DEV_REG = '.storage/core.device_registry'
+FILE_ENT_REG = '.storage/core.entity_registry'
+
+FILE_DEV_REG_BAK = FILE_DEV_REG + '.bak'
+FILE_ENT_REG_BAK = FILE_ENT_REG + '.bak'
+
+FILE_DEV_REG_UPD = FILE_DEV_REG + '.upd'
+FILE_ENT_REG_UPD = FILE_ENT_REG + '.upd'
+
 # Load registries
-with open('.storage/core.device_registry', encoding='utf-8') as d:
+with open(FILE_DEV_REG, encoding='utf-8') as d:
     devices = json.load(d)
 
-with open('.storage/core.entity_registry', encoding='utf-8') as e:
+with open(FILE_ENT_REG, encoding='utf-8') as e:
     entities = json.load(e)
 
 # Backup
-with open('.storage/core.device_registry.bak', 'w', encoding='utf-8') as d:
+with open(FILE_DEV_REG_BAK, 'w', encoding='utf-8') as d:
     json.dump(devices, d, indent=2, ensure_ascii=False)
 
-with open('.storage/core.entity_registry.bak', 'w', encoding='utf-8') as e:
+with open(FILE_ENT_REG_BAK, 'w', encoding='utf-8') as e:
     json.dump(entities, e, indent=2, ensure_ascii=False)
 
 # Find dead devices
@@ -46,10 +57,22 @@ for n in dead_devices_index[::-1]:
     devices['data']['devices'].pop(n)
 
 # save updated dict
-with open('.storage/core.device_registry.upd', 'w', encoding='utf-8') as d:
+with open(FILE_DEV_REG_UPD, 'w', encoding='utf-8') as d:
     json.dump(devices, d, indent=2, ensure_ascii=False)
 
-with open('.storage/core.entity_registry.upd', 'w', encoding='utf-8') as e:
+with open(FILE_ENT_REG_UPD, 'w', encoding='utf-8') as e:
     json.dump(entities, e, indent=2, ensure_ascii=False)
+
+# Run diff
+print("Diff changes:")
+DIFF_DEV = f'diff "{FILE_DEV_REG_UPD}" "{FILE_DEV_REG_BAK}"'
+DIFF_ENT = f'diff "{FILE_ENT_REG_UPD}" "{FILE_ENT_REG_BAK}"'
+
+print(DIFF_DEV)
+os.system(DIFF_DEV)
+
+print("")
+print(DIFF_ENT)
+os.system(DIFF_ENT)
 
 print('Done')
