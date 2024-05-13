@@ -1,5 +1,16 @@
 import os
 import json
+import sys
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--dry', required=False, action='store_true')
+
+args = parser.parse_args()
+
+if args.dry:
+    print("\n** DRY RUN MODE. No changes will be made, all processing is "
+          "performed in read-only **\n")
 
 devices = None  # store core.device_registry
 entities = None  # store core.entity_registry
@@ -22,11 +33,12 @@ with open(FILE_ENT_REG, encoding='utf-8') as e:
     entities = json.load(e)
 
 # Backup
-with open(FILE_DEV_REG_BAK, 'w', encoding='utf-8') as d:
-    json.dump(devices, d, indent=2, ensure_ascii=False)
+if not args.dry:
+    with open(FILE_DEV_REG_BAK, 'w', encoding='utf-8') as d:
+        json.dump(devices, d, indent=2, ensure_ascii=False)
 
-with open(FILE_ENT_REG_BAK, 'w', encoding='utf-8') as e:
-    json.dump(entities, e, indent=2, ensure_ascii=False)
+    with open(FILE_ENT_REG_BAK, 'w', encoding='utf-8') as e:
+        json.dump(entities, e, indent=2, ensure_ascii=False)
 
 # Find dead devices
 dead_devices_id = []
@@ -49,12 +61,18 @@ for dev_id in dead_devices_id:
             del_entities_index.append(i)
     # remove items from the end to not impact the indexes
     # print(del_entities)
-    for k in del_entities_index[::-1]:
-        entities['data']['entities'].pop(k)
+    if not args.dry:
+        for k in del_entities_index[::-1]:
+            entities['data']['entities'].pop(k)
 
 # remove dead devices in reverse order
-for n in dead_devices_index[::-1]:
-    devices['data']['devices'].pop(n)
+if not args.dry:
+    for n in dead_devices_index[::-1]:
+        devices['data']['devices'].pop(n)
+
+if args.dry:
+    print("\n** RUNNING IN DRY RUN mode. Nothing else to do, quit. **\n")
+    exit(0)
 
 # save updated dict
 with open(FILE_DEV_REG_UPD, 'w', encoding='utf-8') as d:
@@ -75,4 +93,7 @@ print("")
 print(DIFF_ENT)
 os.system(DIFF_ENT)
 
-print('Done')
+print('\nFinished process. Please note that original files WERE NOT MODIFIED. '
+      'You should manualy update them, otherwise they will not be '
+      'picked up by HASS.\n')
+print(f'Updated files are:\n{FILE_DEV_REG_UPD}\n{FILE_ENT_REG_UPD}')
