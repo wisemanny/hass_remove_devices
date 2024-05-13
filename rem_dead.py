@@ -1,12 +1,18 @@
 import os
 import json
-import sys
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dry', required=False, action='store_true')
-
+parser.add_argument('--dry', required=False, action='store_true',
+                    help='Do not modify any files, show what would be changed and stop')
+parser.add_argument('--force', required=False, action='store_true',
+                    help='Force update of hass DB files inplace. Use carefully!')
 args = parser.parse_args()
+
+if args.dry and args.force:
+    print("\nBoth --force and --dry were specified. Dry takes priority.\n")
+elif args.force:
+    print("\n** FORCE update. Changes will be written to the hass DB files **\n")
 
 if args.dry:
     print("\n** DRY RUN MODE. No changes will be made, all processing is "
@@ -93,7 +99,27 @@ print("")
 print(DIFF_ENT)
 os.system(DIFF_ENT)
 
-print('\nFinished process. Please note that original files WERE NOT MODIFIED. '
-      'You should manualy update them, otherwise they will not be '
-      'picked up by HASS.\n')
-print(f'Updated files are:\n{FILE_DEV_REG_UPD}\n{FILE_ENT_REG_UPD}')
+if args.force and not args.dry:
+    print('\n!** Forcing update of the hass files in place\n')
+    decision = input('Let''s confirm you are confident that we should update '
+                     'devices and entities files inplace - '
+                     'type "Yes" to proceed: ')
+    if decision.upper() == 'YES':
+        print('OK, update!')
+
+        # save updated dict
+        with open(FILE_DEV_REG, 'w', encoding='utf-8') as d:
+            json.dump(devices, d, indent=2, ensure_ascii=False)
+
+        with open(FILE_ENT_REG, 'w', encoding='utf-8') as e:
+            json.dump(entities, e, indent=2, ensure_ascii=False)
+
+        print('Done')
+    else:
+        print('You decided not to proceed, will not update, '
+              'but .upd files are ready for manual mv command')
+else:
+    print('\nFinished process. Please note that original files WERE NOT MODIFIED. '
+          'You should manualy update them, otherwise they will not be '
+          'picked up by HASS.\n')
+    print(f'Updated files are:\n{FILE_DEV_REG_UPD}\n{FILE_ENT_REG_UPD}')
