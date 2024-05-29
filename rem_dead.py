@@ -40,11 +40,18 @@ with open(FILE_ENT_REG, encoding='utf-8') as e:
 
 # Backup
 if not args.dry:
-    with open(FILE_DEV_REG_BAK, 'w', encoding='utf-8') as d:
-        json.dump(devices, d, indent=2, ensure_ascii=False)
+    try:
+        with open(FILE_DEV_REG_BAK, 'w', encoding='utf-8') as d:
+            json.dump(devices, d, indent=2, ensure_ascii=False)
 
-    with open(FILE_ENT_REG_BAK, 'w', encoding='utf-8') as e:
-        json.dump(entities, e, indent=2, ensure_ascii=False)
+        with open(FILE_ENT_REG_BAK, 'w', encoding='utf-8') as e:
+            json.dump(entities, e, indent=2, ensure_ascii=False)
+    except PermissionError:
+        print("Permission error while opening backup files for writing, "
+              "probbaly need to run as sudo")
+        print(f"These are the files for backup: {FILE_DEV_REG_BAK} and "
+              f"{FILE_ENT_REG_BAK}")
+        exit(3)
 
 # Find dead devices
 dead_devices_id = []
@@ -52,7 +59,7 @@ dead_devices_index = []
 for m, dev in enumerate(devices['data']['devices']):
     if 'name_by_user' in dev and dev['name_by_user'] is not None and \
             dev['name_by_user'].endswith('dead'):
-        print(f'Found dead device {dev["name_by_user"]}')
+        print(f'Found dead device {dev["name_by_user"]} with id {dev["id"]}')
         # save device id and its index in array to remove later
         dead_devices_id.append(dev['id'])
         dead_devices_index.append(m)
